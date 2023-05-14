@@ -5,6 +5,7 @@ import { AuthContext } from "../../Providers/AuthProvider";
 const CheckOut = () => {
   const service = useLoaderData();
   const { title, price, _id, img } = service;
+  console.log(service);
 
   const { user } = useContext(AuthContext);
 
@@ -14,7 +15,7 @@ const CheckOut = () => {
     const name = form.name.value;
     const email = user?.email;
     const date = form.date.value;
-    const money= form.due.value
+    const money = form.due.value;
     const booking = {
       customerName: name,
       email: email,
@@ -23,11 +24,10 @@ const CheckOut = () => {
       service_id: _id,
       service: title,
       price: money,
-
     };
     console.log(booking);
 
-    fetch("http://localhost:5000/bookings", {
+    fetch("https://car-doctor-server-mu-two.vercel.app/bookings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(booking),

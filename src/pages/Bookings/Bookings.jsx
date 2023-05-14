@@ -1,23 +1,39 @@
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../Providers/AuthProvider";
 import BookingRow from "./BookingRow";
+import { useNavigate } from "react-router-dom";
 
 const Bookings = () => {
   const { user } = useContext(AuthContext);
   const [bookings, setBookings] = useState([]);
+  const navigate = useNavigate();
 
-  const url = `http://localhost:5000/bookings?email=${user?.email}`;
+  const url = `https://car-doctor-server-mu-two.vercel.app/bookings?email=${user?.email}`;
 
   useEffect(() => {
-    fetch(url)
+    fetch(url, {
+      method: "GET",
+      headers: {
+        authorization: `Bearer ${localStorage.getItem("car-access-token")}`,
+      },
+    })
       .then((res) => res.json())
-      .then((data) => setBookings(data));
-  }, [url]);
+      .then((data) => {
+        if (!data.error) {
+          setBookings(data);
+        } else {
+          //logout and then navigate is the best way for this
+          navigate("/");
+        }
+      });
+  }, [url, navigate]);
+
+  //!deleteBookings button
 
   const handleDelete = (id) => {
     const proceed = confirm("Are you sure you want to delete");
     if (proceed) {
-      fetch(`http://localhost:5000/bookings/${id}`, {
+      fetch(`https://car-doctor-server-mu-two.vercel.app/bookings/${id}`, {
         method: "DELETE",
       })
         .then((res) => res.json())
@@ -33,8 +49,10 @@ const Bookings = () => {
     }
   };
 
+  //!confirmation button
+
   const handleBookingConfirm = (id) => {
-    fetch(`http://localhost:5000/bookings/${id}`, {
+    fetch(`https://car-doctor-server-mu-two.vercel.app/bookings/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: "confirm" }),
@@ -43,15 +61,16 @@ const Bookings = () => {
       .then((data) => {
         console.log(data);
         if (data.modifiedCount > 0) {
-          //updateState
-          const remaining = bookings.filter((booking) => booking._id !== id);
+          //? confused about the the newBooking and the behavior of the button going up at the top always after clicking it to change the status.
           const updated = bookings.find((booking) => booking._id === id);
+          const remaining = bookings.filter((booking) => booking._id !== id);
           updated.status = "confirm";
           const newBookings = [updated, ...remaining];
           setBookings(newBookings);
         }
       });
   };
+
   return (
     <div>
       <p className="text-5xl">Your Bookings : {bookings.length}</p>
